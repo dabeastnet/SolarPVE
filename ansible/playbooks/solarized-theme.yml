@@ -1,14 +1,14 @@
 ---
 - name: Install Solarized Proxmox theme
 # Playbook: solarized-theme.yml
-# Author: Dieter Beckers 
+# Author: Dieter Beckers & vhsdream
 # Github: https://github.com/dabeastnet/SolarPVE
-# Description: Install Solarized Proxmox theme (light + dark-mode detection)
+# Description: Install Solarized Proxmox theme (automatic light + dark-mode detection)
 # License: CC BY-NC 4.0.
 #
-#Change this to match your inventory grouping
+# Change this to match your inventory grouping
   hosts: pve
-  become: yes
+  become: true
   vars:
     css_src: files/solarized.css
     css_dest: /usr/share/pve-manager/images/solarized.css
@@ -31,23 +31,31 @@
         group: root
         mode: '0644'
 
-    - name: Inject dark-mode detector + Solarized link into index.html.tpl
+    - name: Inject auto-theme-mode detector + Solarized link into index.html.tpl
       blockinfile:
         path: "{{ tpl_path }}"
         backup: yes
         marker: "<!-- {mark} solarized theme -->"
-        insertbefore: "</head>"
+        insertbefore: "</body>"
         block: |
           <script>
-            document.addEventListener('DOMContentLoaded', () => {
-              // Look for the Proxmox dark-theme stylesheet
-              const darkLink = document.querySelector(
-                'link[href*="theme-proxmox-dark.css"]'
-              );
-              if (darkLink) {
+            function setSolarizedThemeMode() {
+              const defaultMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              const selectedTheme = document.cookie.split("; ")
+              .find((row) => row.startsWith("PVEThemeCookie="))
+              ?.split("=")[1];
+
+              if (defaultMode && selectedTheme !== "crisp") {
+                document.body.classList.add('proxmox-theme-dark');
+              } else if (selectedTheme !== "proxmox-dark") {
+                document.body.classList.remove('proxmox-theme-dark');
+              } else {
                 document.body.classList.add('proxmox-theme-dark');
               }
-            });
+            }
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setSolarizedThemeMode);
+            setSolarizedThemeMode();
           </script>
           <link rel="stylesheet" href="/pve2/images/solarized.css">
 
