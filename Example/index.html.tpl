@@ -55,25 +55,34 @@
     Ext.onReady(function() { Ext.create('PVE.StdWorkspace');});
     </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Look for the Proxmox dark-theme stylesheet
-    const darkLink = document.querySelector(
-      'link[href*="theme-proxmox-dark.css"]'
-    );
-    if (darkLink) {
-      document.body.classList.add('proxmox-theme-dark');
-    }
-  });
-</script>
-
-<link rel="stylesheet" href="/pve2/images/solarized.css">
-
   </head>
   <body>
     <!-- Fields required for history management -->
     <form id="history-form" class="x-hidden">
     <input type="hidden" id="x-history-field"/>
     </form>
+
+<script>
+function setSolarizedThemeMode() {
+    const defaultMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const selectedTheme = document.cookie.split("; ")
+    .find((row) => row.startsWith("PVEThemeCookie="))
+    ?.split("=")[1];
+
+    if (defaultMode && selectedTheme !== "crisp") {
+        document.body.classList.add('proxmox-theme-dark');
+    } else if (selectedTheme !== "proxmox-dark") {
+        document.body.classList.remove('proxmox-theme-dark');
+    } else {
+        document.body.classList.add('proxmox-theme-dark');
+    }
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setSolarizedThemeMode);
+setSolarizedThemeMode();
+</script>
+
+<link rel="stylesheet" href="/pve2/images/solarized.css">
+
   </body>
 </html>
